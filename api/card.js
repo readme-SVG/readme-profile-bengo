@@ -3,7 +3,7 @@ const { esc } = require('../lib/helpers');
 const { gh } = require('../lib/github');
 const ALL_SLIDES = require('../slides');
 
-function pickSlide(user, repos, events, commits, issues, slidesParam, overrideIdx) {
+function pickSlide(user, repos, events, commits, issues, slidesParam, overrideIdx, badgeNum) {
   let enabled = ALL_SLIDES;
   if (slidesParam) {
     const ids = slidesParam.split(',').map(s => s.trim()).filter(Boolean);
@@ -14,9 +14,10 @@ function pickSlide(user, repos, events, commits, issues, slidesParam, overrideId
   }
 
   const bucket = Math.floor(Date.now() / (10 * 60 * 1000));
+  const offset = badgeNum === 2 ? Math.floor(enabled.length / 2) : 0;
   const idx = (overrideIdx !== undefined && overrideIdx >= 0 && overrideIdx < enabled.length)
     ? overrideIdx
-    : bucket % enabled.length;
+    : (bucket + offset) % enabled.length;
   return enabled[idx].fn(user, repos, events, commits, issues);
 }
 
@@ -85,7 +86,8 @@ module.exports = async function handler(req, res) {
 
     const overrideIdx = q._slide !== undefined ? parseInt(q._slide, 10) : undefined;
     const slidesParam = q.slides || '';
-    const svgOut = pickSlide(user, repos, events, commits, issues, slidesParam, overrideIdx);
+    const badgeNum = q.badge === '2' ? 2 : 1;
+    const svgOut = pickSlide(user, repos, events, commits, issues, slidesParam, overrideIdx, badgeNum);
     const isPreview = overrideIdx !== undefined;
     res.setHeader('Cache-Control', isPreview ? 'no-cache' : 's-maxage=600,stale-while-revalidate=60');
     return res.status(200).send(svgOut);
