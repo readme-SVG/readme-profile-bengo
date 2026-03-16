@@ -96,8 +96,9 @@ function getEnabledIds(badge) {
 function cardUrl({ slideIdx, preview, badge } = {}) {
   const u = document.getElementById('uname').value.trim();
   if (!u) return null;
-  let url = `/api/card?user=${encodeURIComponent(u)}`;
-  const ids = getEnabledIds(badge || 1);
+  const b = badge || 1;
+  let url = `/api/card?user=${encodeURIComponent(u)}&badge=${b}`;
+  const ids = getEnabledIds(b);
   if (ids.length && ids.length < ALL_SLIDES.length) url += '&slides=' + ids.join(',');
   if (preview && slideIdx !== undefined) url += `&_slide=${slideIdx}&_t=${Date.now()}`;
   return url;
@@ -106,7 +107,7 @@ function cardUrl({ slideIdx, preview, badge } = {}) {
 function buildEmbedUrl(badge) {
   const u = document.getElementById('uname').value.trim() || 'username';
   const base = location.origin;
-  let url = `${base}/api/card?user=${u}`;
+  let url = `${base}/api/card?user=${u}&badge=${badge}`;
   const ids = getEnabledIds(badge);
   if (ids.length && ids.length < ALL_SLIDES.length) url += '&slides=' + ids.join(',');
   return url;
